@@ -1,0 +1,12 @@
+[
+  {
+    "product": "fruit",
+    "name": "apple",
+    "freshness_in_days": 5
+  },
+  {
+    "product": "vegetable",
+    "name": "carrot",
+    "freshness_in_days": 8
+  }
+]
