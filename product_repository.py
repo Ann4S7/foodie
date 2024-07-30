@@ -1,6 +1,5 @@
 # TODO switchcase python 3.10 instead if-else
 # TODO improve naming
-# TODO add repr/str to classes
 # TODO create database (postgreSQL) to store products
 
 
