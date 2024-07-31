@@ -1,5 +1,4 @@
 # TODO improve naming
-# TODO add repr/str to classes
 # TODO create database (postgreSQL) to store products
 
 
