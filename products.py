@@ -2,11 +2,11 @@ from datetime import date, timedelta
 
 
 class Product:
-    expiration = "expiry date not set"
+    EXPIRY_DATE_NOT_SET = "expiry date not set"
 
     def __init__(self, name):
         self.name = name
-        self.expiry_date = Product.expiration
+        self.expiry_date = Product.EXPIRY_DATE_NOT_SET
 
     def __repr__(self):
         return f"({self.name}, expiry date: {self.expiry_date})"
