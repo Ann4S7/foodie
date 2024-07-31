@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from utils import calculate_date
 
 
 class Product:
@@ -10,11 +10,6 @@ class Product:
 
     def __repr__(self):
         return f"({self.name}, expiry date: {self.expiry_date})"
-
-
-def calculate_date(freshness_in_days):
-    expiry_date = date.today() + timedelta(days=freshness_in_days)
-    return expiry_date
 
 
 class Fruit(Product):
