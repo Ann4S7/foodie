@@ -5,6 +5,7 @@
 import json
 
 import products
+from database_context_manager import DatabaseContextManager
 
 
 product_list = []
@@ -18,24 +19,22 @@ def add_products(json_file):
         for product in all_products:
             match product["product"]:
                 case "fruit":
-                    name = product["name"]
-                    freshness_in_days = product["freshness_in_days"]
-                    product_list.append(products.Fruit(name, freshness_in_days))
-                case "vegetable":
-                    name = product["name"]
-                    freshness_in_days = product["freshness_in_days"]
-                    product_list.append(products.Vegetable(name, freshness_in_days))
-                case "dairy":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Dairy(name, expiry_date))
-                case "meat":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Meat(name, expiry_date))
-                case "grain":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Grain(name, expiry_date))
+                    new_product = products.Fruit(product["name"], product["freshness_in_days"])
 
-    print(product_list)
+                case "vegetable":
+                    new_product = products.Vegetable(product["name"], product["freshness_in_days"])
+
+                case "dairy":
+                    new_product = products.Dairy(product["name"], product["expiry_date"])
+
+                case "meat":
+                    new_product = products.Meat(product["name"], product["expiry_date"])
+
+                case "grain":
+                    new_product = products.Grain(product["name"], product["expiry_date"])
+
+            with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                        host="localhost", port=5432) as cursor:
+                cursor.execute(f"INSERT INTO products(category, name, expiry_date)"
+                               f"VALUES('{new_product.CATEGORY}', '{new_product.name}',"
+                               f"'{new_product.expiry_date}');")
