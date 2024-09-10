@@ -1,5 +1,7 @@
 from utils import calculate_date
 
+from database_context_manager import DatabaseContextManager
+
 
 class Product:
     EXPIRY_DATE_NOT_SET = "expiry date not set"
@@ -13,7 +15,11 @@ class Product:
         return f"({self.name}, expiry date: {self.expiry_date})"
 
     def save(self):
-        pass
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
+            cursor.execute(f"INSERT INTO products(category, name, expiry_date)"
+                           f"VALUES('{self.CATEGORY}', '{self.name}',"
+                           f"'{self.expiry_date}');")
 
 
 class Fruit(Product):
