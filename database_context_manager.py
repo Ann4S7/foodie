@@ -23,4 +23,3 @@ class DatabaseContextManager:
         self.connection.close()
         if exc_type:
             print(exc_type, exc_value, exc_tb)
-        return "Disconnection from database."
