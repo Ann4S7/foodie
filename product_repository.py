@@ -1,13 +1,12 @@
 # TODO improve naming
-# TODO create database (postgreSQL) to store products
+# TODO add the ability to remove products
+# TODO add the ability to display products
+# TODO storing many of the same products with different dates
 
 
 import json
 
 import products
-
-
-product_list = []
 
 
 def add_products(json_file):
@@ -18,24 +17,18 @@ def add_products(json_file):
         for product in all_products:
             match product["product"]:
                 case "fruit":
-                    name = product["name"]
-                    freshness_in_days = product["freshness_in_days"]
-                    product_list.append(products.Fruit(name, freshness_in_days))
-                case "vegetable":
-                    name = product["name"]
-                    freshness_in_days = product["freshness_in_days"]
-                    product_list.append(products.Vegetable(name, freshness_in_days))
-                case "dairy":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Dairy(name, expiry_date))
-                case "meat":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Meat(name, expiry_date))
-                case "grain":
-                    name = product["name"]
-                    expiry_date = product["expiry_date"]
-                    product_list.append(products.Grain(name, expiry_date))
+                    new_product = products.Fruit(product["name"], product["freshness_in_days"])
 
-    print(product_list)
+                case "vegetable":
+                    new_product = products.Vegetable(product["name"], product["freshness_in_days"])
+
+                case "dairy":
+                    new_product = products.Dairy(product["name"], product["expiry_date"])
+
+                case "meat":
+                    new_product = products.Meat(product["name"], product["expiry_date"])
+
+                case "grain":
+                    new_product = products.Grain(product["name"], product["expiry_date"])
+
+            new_product.save()
