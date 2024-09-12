@@ -19,9 +19,19 @@ class Product:
     def save(self):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
-            cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
-                           f"VALUES('{self.CATEGORY}', '{self.name}',"
-                           f"'{self.expiry_date}', {self.quantity});")
+
+            cursor.execute(f"SELECT * FROM products "
+                           f"WHERE name = '{self.name}' AND expiry_date = '{self.expiry_date}';")
+
+            product_status = cursor.fetchall()
+
+            if not product_status:
+                cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
+                               f"VALUES('{self.CATEGORY}', '{self.name}',"
+                               f"'{self.expiry_date}', {self.quantity});")
+            else:
+                cursor.execute(f"UPDATE products SET quantity = quantity + {self.quantity} "
+                               f"WHERE name = '{self.name}' AND expiry_date = '{self.expiry_date}';")
 
 
 class Fruit(Product):
