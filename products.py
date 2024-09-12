@@ -6,10 +6,12 @@ from database_context_manager import DatabaseContextManager
 class Product:
     EXPIRY_DATE_NOT_SET = "expiry date not set"
     CATEGORY = "product"
+    DEFAULT_QUANTITY = 1
 
     def __init__(self, name):
         self.name = name
         self.expiry_date = Product.EXPIRY_DATE_NOT_SET
+        self.quantity = Product.DEFAULT_QUANTITY
 
     def __repr__(self):
         return f"({self.name}, expiry date: {self.expiry_date})"
@@ -17,9 +19,9 @@ class Product:
     def save(self):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
-            cursor.execute(f"INSERT INTO products(category, name, expiry_date)"
+            cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
                            f"VALUES('{self.CATEGORY}', '{self.name}',"
-                           f"'{self.expiry_date}');")
+                           f"'{self.expiry_date}', {self.quantity});")
 
 
 class Fruit(Product):
