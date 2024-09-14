@@ -31,52 +31,63 @@ class Repository:
 
 class ProductRepository(Repository):
 
-    def get(self, cursor, new_product):
-        cursor.execute(f"SELECT * FROM products "
-                       f"WHERE name = '{new_product.name}' AND expiry_date = '{new_product.expiry_date}';")
+    def get(self, product):
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
 
-    def add(self, cursor, new_product):
-        cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
-                       f"VALUES('{new_product.CATEGORY}', '{new_product.name}',"
-                       f"'{new_product.expiry_date}', {new_product.quantity});")
+            cursor.execute(f"SELECT * FROM products "
+                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
-    def update(self, cursor, new_product):
-        cursor.execute(f"UPDATE products SET quantity = quantity + {new_product.quantity} "
-                       f"WHERE name = '{new_product.name}' AND expiry_date = '{new_product.expiry_date}';")
+            return cursor.fetchall()
+
+    def add(self, product):
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
+
+            cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
+                           f"VALUES('{product.CATEGORY}', '{product.name}',"
+                           f"'{product.expiry_date}', {product.quantity});")
+
+    def update(self, product):
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
+
+            cursor.execute(f"UPDATE products SET quantity = quantity + {product.quantity} "
+                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
 
 def add_products(json_file):
     with open(json_file) as file:
-        all_products = file.read()
-        all_products = json.loads(all_products)
+        products_list = file.read()
+        products_list = json.loads(products_list)
 
-        for product in all_products:
-            match product["product"]:
+        for product_dict in products_list:
+            match product_dict["product"]:
                 case "fruit":
-                    new_product = products.Fruit(product["name"], product["freshness_in_days"],
-                                                 product.get("quantity"))
+                    product = products.Fruit(product_dict["name"], product_dict["freshness_in_days"],
+                                             product_dict.get("quantity"))
 
                 case "vegetable":
-                    new_product = products.Vegetable(product["name"], product["freshness_in_days"],
-                                                     product.get("quantity"))
+                    product = products.Vegetable(product_dict["name"], product_dict["freshness_in_days"],
+                                                 product_dict.get("quantity"))
 
                 case "dairy":
-                    new_product = products.Dairy(product["name"], product["expiry_date"], product.get("quantity"))
+                    product = products.Dairy(product_dict["name"], product_dict["expiry_date"],
+                                             product_dict.get("quantity"))
 
                 case "meat":
-                    new_product = products.Meat(product["name"], product["expiry_date"], product.get("quantity"))
+                    product = products.Meat(product_dict["name"], product_dict["expiry_date"],
+                                            product_dict.get("quantity"))
 
                 case "grain":
-                    new_product = products.Grain(product["name"], product["expiry_date"], product.get("quantity"))
+                    product = products.Grain(product_dict["name"], product_dict["expiry_date"],
+                                             product_dict.get("quantity"))
 
-            with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                        host="localhost", port=5432) as cursor:
+            repo = ProductRepository()
 
-                ProductRepository().get(cursor, new_product)
+            product_status = repo.get(product)
 
-                product_status = cursor.fetchall()
-
-                if not product_status:
-                    ProductRepository().add(cursor, new_product)
-                else:
-                    ProductRepository().update(cursor, new_product)
+            if product_status:
+                repo.update(product)
+            else:
+                repo.add(product)
