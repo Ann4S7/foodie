@@ -7,6 +7,13 @@
   {
     "product": "vegetable",
     "name": "carrot",
-    "freshness_in_days": 8
+    "freshness_in_days": 8,
+    "quantity": 2
+  },
+  {
+    "product": "dairy",
+    "name": "milk",
+    "expiry_date": "2024-09-20",
+    "quantity": 3
   }
 ]
