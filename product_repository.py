@@ -1,7 +1,6 @@
 # TODO improve naming
 # TODO add the ability to remove products
 # TODO add the ability to display products
-# TODO storing many of the same products with different dates
 
 
 import json
@@ -31,12 +30,14 @@ class Repository:
 
 class ProductRepository(Repository):
 
-    def get(self, product):
+    def get(self, column, product_id=None, product=None):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
-
-            cursor.execute(f"SELECT * FROM products "
-                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+            if product_id:
+                cursor.execute(f"SELECT {column} FROM products WHERE product_id = '{product_id}';")
+            else:
+                cursor.execute(f"SELECT {column} FROM products "
+                               f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
             return cursor.fetchall()
 
@@ -48,16 +49,26 @@ class ProductRepository(Repository):
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
-    def update(self, product):
+    def update(self, product_id=None, quantity=None, product=None):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
-            cursor.execute(f"UPDATE products SET quantity = quantity + {product.quantity} "
-                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+            if product_id:
+                cursor.execute(f"UPDATE products SET quantity = quantity + {quantity} "
+                               f"WHERE product_id = '{product_id}';")
+            else:
+                cursor.execute(f"UPDATE products SET quantity = quantity + {product.quantity} "
+                               f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+
+    def remove(self, product):
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
+
+            cursor.execute(f"DELETE FROM products WHERE product_id = '{product}';")
 
 
-def add_products(json_file):
-    with open(json_file) as file:
+def add_products(args):
+    with open(args.json_file_add) as file:
         products_list = file.read()
         products_list = json.loads(products_list)
 
@@ -85,9 +96,29 @@ def add_products(json_file):
 
             repo = ProductRepository()
 
-            product_status = repo.get(product)
+            product_status = repo.get(column="product_id", product=product)
 
             if product_status:
-                repo.update(product)
+                repo.update(product=product)
             else:
                 repo.add(product)
+
+
+def remove_products(args):
+    with open(args.json_file_remove) as file:
+        products_list = file.read()
+        products_list = json.loads(products_list)
+
+        for product_dict in products_list:
+            quantity_used = product_dict.get("quantity", 1)
+            product = product_dict["product_id"]
+
+            repo = ProductRepository()
+
+            product_status = repo.get(column="quantity", product_id=product)
+            product_quantity = product_status[0][0]
+
+            if product_quantity > quantity_used:
+                repo.update(product_id=product, quantity=-quantity_used)
+            else:
+                repo.remove(product)
