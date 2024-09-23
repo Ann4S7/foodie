@@ -6,6 +6,7 @@ import json
 
 from database_context_manager import DatabaseContextManager
 import products
+from utils import calculate_date
 
 
 class Repository:
@@ -107,7 +108,8 @@ def add_products(args):
         for product_dict in products_list:
             product_class = get_product_class(product_dict["category"])
             product = product_class(product_dict["name"],
-                                    product_dict.get("freshness_in_days") or product_dict["expiry_date"],
+                                    product_dict.get("expiry_date")
+                                    or calculate_date(product_dict["freshness_in_days"]),
                                     product_dict.get("quantity"))
 
             repo = ProductRepository()
