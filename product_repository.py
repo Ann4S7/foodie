@@ -1,5 +1,4 @@
 # TODO improve naming
-# TODO add the ability to remove products
 # TODO add the ability to display products
 
 
@@ -12,7 +11,11 @@ import products
 class Repository:
 
     def get(self, *args, **kwargs):
-        """Get the row from database."""
+        """Get the row from database by id."""
+        raise NotImplemented
+
+    def search(self, *args, **kwargs):
+        """Get the row from database by name and expiry date."""
         raise NotImplemented
 
     def add(self, *args, **kwargs):
@@ -30,14 +33,29 @@ class Repository:
 
 class ProductRepository(Repository):
 
-    def get(self, column, product_id=None, product=None):
+    def get(self, product_id):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
-            if product_id:
-                cursor.execute(f"SELECT {column} FROM products WHERE product_id = '{product_id}';")
-            else:
-                cursor.execute(f"SELECT {column} FROM products "
-                               f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+
+            cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
+                           f"WHERE product_id = '{product_id}';")
+
+            products_list = cursor.fetchall()
+
+            for product_tuple in products_list:
+                product_class = get_product_class(product_tuple[0])
+                product = product_class(product_tuple[1],
+                                        product_tuple[2],
+                                        product_tuple[3])
+
+            return product
+
+    def search(self, product):
+        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
+                                    host="localhost", port=5432) as cursor:
+
+            cursor.execute(f"SELECT * FROM products "
+                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
             return cursor.fetchall()
 
@@ -49,22 +67,36 @@ class ProductRepository(Repository):
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
-    def update(self, product_id=None, quantity=None, product=None):
+    def update(self, product):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
-            if product_id:
-                cursor.execute(f"UPDATE products SET quantity = quantity + {quantity} "
-                               f"WHERE product_id = '{product_id}';")
-            else:
-                cursor.execute(f"UPDATE products SET quantity = quantity + {product.quantity} "
-                               f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+            cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
+                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
-    def remove(self, product):
+    def remove(self, product_id):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
-            cursor.execute(f"DELETE FROM products WHERE product_id = '{product}';")
+            cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
+
+
+def get_product_class(category):
+    match category:
+        case "fruit":
+            product_class = products.Fruit
+        case "vegetable":
+            product_class = products.Vegetable
+        case "dairy":
+            product_class = products.Dairy
+        case "meat":
+            product_class = products.Meat
+        case "grain":
+            product_class = products.Grain
+        case _:
+            product_class = products.Product
+
+    return product_class
 
 
 def add_products(args):
@@ -73,33 +105,20 @@ def add_products(args):
         products_list = json.loads(products_list)
 
         for product_dict in products_list:
-            match product_dict["product"]:
-                case "fruit":
-                    product = products.Fruit(product_dict["name"], product_dict["freshness_in_days"],
-                                             product_dict.get("quantity"))
-
-                case "vegetable":
-                    product = products.Vegetable(product_dict["name"], product_dict["freshness_in_days"],
-                                                 product_dict.get("quantity"))
-
-                case "dairy":
-                    product = products.Dairy(product_dict["name"], product_dict["expiry_date"],
-                                             product_dict.get("quantity"))
-
-                case "meat":
-                    product = products.Meat(product_dict["name"], product_dict["expiry_date"],
-                                            product_dict.get("quantity"))
-
-                case "grain":
-                    product = products.Grain(product_dict["name"], product_dict["expiry_date"],
-                                             product_dict.get("quantity"))
+            product_class = get_product_class(product_dict["category"])
+            product = product_class(product_dict["name"],
+                                    product_dict.get("freshness_in_days") or product_dict["expiry_date"],
+                                    product_dict.get("quantity"))
 
             repo = ProductRepository()
 
-            product_status = repo.get(column="product_id", product=product)
+            product_status = repo.search(product)
 
             if product_status:
-                repo.update(product=product)
+                # product_status is one-element list of tuples
+                # the last element of the tuple is quantity value
+                product.quantity = product.quantity + product_status[0][-1]
+                repo.update(product)
             else:
                 repo.add(product)
 
@@ -111,14 +130,14 @@ def remove_products(args):
 
         for product_dict in products_list:
             quantity_used = product_dict.get("quantity", 1)
-            product = product_dict["product_id"]
+            product_id = product_dict["product_id"]
 
             repo = ProductRepository()
 
-            product_status = repo.get(column="quantity", product_id=product)
-            product_quantity = product_status[0][0]
+            product = repo.get(product_id)
 
-            if product_quantity > quantity_used:
-                repo.update(product_id=product, quantity=-quantity_used)
+            if product.quantity > quantity_used:
+                product.quantity = product.quantity - quantity_used
+                repo.update(product)
             else:
-                repo.remove(product)
+                repo.remove(product_id)
