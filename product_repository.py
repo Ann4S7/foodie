@@ -43,11 +43,11 @@ class ProductRepository(Repository):
 
             products_list = cursor.fetchall()
 
-            for product_tuple in products_list:
-                product_class = get_product_class(product_tuple[0])
-                product = product_class(product_tuple[1],
-                                        product_tuple[2],
-                                        product_tuple[3])
+            product_tuple = products_list[0]
+            product_class = get_product_class(product_tuple[0])
+            product = product_class(product_tuple[1],
+                                    product_tuple[2],
+                                    product_tuple[3])
 
             return product
 
@@ -131,12 +131,13 @@ def remove_products(args):
         products_list = json.loads(products_list)
 
         for product_dict in products_list:
-            quantity_used = product_dict.get("quantity", 1)
             product_id = product_dict["product_id"]
 
             repo = ProductRepository()
 
             product = repo.get(product_id)
+
+            quantity_used = product_dict.get("quantity", product.DEFAULT_QUANTITY)
 
             if product.quantity > quantity_used:
                 product.quantity = product.quantity - quantity_used
