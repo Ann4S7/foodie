@@ -3,6 +3,7 @@
 
 
 import json
+from argparse import Namespace
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -34,7 +35,7 @@ class Repository:
 
 class ProductRepository(Repository):
 
-    def get(self, product_id):
+    def get(self, product_id: int) -> products.Product:
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
@@ -51,7 +52,7 @@ class ProductRepository(Repository):
 
             return product
 
-    def search(self, product):
+    def search(self, product: products.Product) -> list[tuple]:
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
@@ -60,7 +61,7 @@ class ProductRepository(Repository):
 
             return cursor.fetchall()
 
-    def add(self, product):
+    def add(self, product: products.Product):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
@@ -68,21 +69,21 @@ class ProductRepository(Repository):
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
-    def update(self, product):
+    def update(self, product: products.Product):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
-    def remove(self, product_id):
+    def remove(self, product_id: int):
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
 
 
-def get_product_class(category):
+def get_product_class(category: str) -> type(products.Product):
     match category:
         case "fruit":
             product_class = products.Fruit
@@ -100,7 +101,7 @@ def get_product_class(category):
     return product_class
 
 
-def add_products(args):
+def add_products(args: Namespace):
     with open(args.json_file_add) as file:
         products_list = file.read()
         products_list = json.loads(products_list)
@@ -125,7 +126,7 @@ def add_products(args):
                 repo.add(product)
 
 
-def remove_products(args):
+def remove_products(args: Namespace):
     with open(args.json_file_remove) as file:
         products_list = file.read()
         products_list = json.loads(products_list)
