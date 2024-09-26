@@ -1,19 +1,12 @@
 [
   {
-    "product": "fruit",
-    "name": "apple",
-    "freshness_in_days": 5
+    "category": "meat",
+    "name": "ham",
+    "expiry_date": "2024-09-30"
   },
   {
-    "product": "vegetable",
-    "name": "carrot",
-    "freshness_in_days": 8,
-    "quantity": 2
-  },
-  {
-    "product": "dairy",
-    "name": "milk",
-    "expiry_date": "2024-09-20",
-    "quantity": 3
+    "category": "fruit",
+    "name": "banana",
+    "freshness_in_days": 3
   }
 ]
