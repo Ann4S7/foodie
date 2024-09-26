@@ -61,7 +61,7 @@ class ProductRepository(Repository):
 
             return cursor.fetchall()
 
-    def add(self, product: products.Product):
+    def add(self, product: products.Product) -> None:
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
@@ -69,14 +69,14 @@ class ProductRepository(Repository):
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
-    def update(self, product: products.Product):
+    def update(self, product: products.Product) -> None:
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
-    def remove(self, product_id: int):
+    def remove(self, product_id: int) -> None:
         with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
                                     host="localhost", port=5432) as cursor:
 
@@ -101,7 +101,7 @@ def get_product_class(category: str) -> type(products.Product):
     return product_class
 
 
-def add_products(args: Namespace):
+def add_products(args: Namespace) -> None:
     with open(args.json_file_add) as file:
         products_list = file.read()
         products_list = json.loads(products_list)
@@ -126,7 +126,7 @@ def add_products(args: Namespace):
                 repo.add(product)
 
 
-def remove_products(args: Namespace):
+def remove_products(args: Namespace) -> None:
     with open(args.json_file_remove) as file:
         products_list = file.read()
         products_list = json.loads(products_list)
