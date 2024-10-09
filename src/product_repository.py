@@ -6,6 +6,7 @@ import json
 import os
 from argparse import Namespace
 from datetime import date
+from typing import Optional
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -41,12 +42,13 @@ class Repository:
 
 class ProductRepository(Repository):
 
-    def __init__(self, database, user="postgres", host="localhost", port=5432, password=None):
-        self.database = database
-        self.user = user
-        self.password = password
-        self.host = host
-        self.port = port
+    def __init__(self, database: Optional[str] = None, user: Optional[str] = None, host: Optional[str] = None,
+                 port: Optional[int] = None, password: Optional[str] = None):
+        self.database = database or os.environ.get("DB_NAME")
+        self.user = user or os.environ.get("DB_USER")
+        self.password = password or os.environ.get("DB_PASSWORD")
+        self.host = host or os.environ.get("DB_HOST")
+        self.port = port or int(os.environ.get("DB_PORT"))
 
     def get(self, product_id: int) -> products.Product:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
@@ -104,16 +106,6 @@ class ProductRepository(Repository):
             return cursor.fetchall()[0][0]
 
 
-def set_repository():
-    return ProductRepository(
-        database=os.environ.get("DB_NAME"),
-        host=os.environ.get("DB_HOST"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        port=int(os.environ.get("DB_PORT"))
-    )
-
-
 def get_product_class(category: str) -> type(products.Product):
     match category:
         case "fruit":
@@ -144,7 +136,7 @@ def add_products(args: Namespace) -> None:
                                     or calculate_date(product_dict["freshness_in_days"]),
                                     product_dict.get("quantity"))
 
-            repo = set_repository()
+            repo = ProductRepository()
 
             product_status = repo.search(product.name, product.expiry_date)
 
@@ -165,7 +157,7 @@ def remove_products(args: Namespace) -> None:
         for product_dict in products_list:
             product_id = product_dict["product_id"]
 
-            repo = set_repository()
+            repo = ProductRepository()
 
             product = repo.get(product_id)
 

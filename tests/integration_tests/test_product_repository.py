@@ -2,13 +2,13 @@ from argparse import Namespace
 import pytest
 import datetime
 
-from product_repository import add_products, remove_products, set_repository
+from product_repository import add_products, ProductRepository, remove_products
 from utils import calculate_date
 
 
 @pytest.fixture
 def product_repository():
-    return set_repository()
+    return ProductRepository()
 
 
 @pytest.mark.order(1)
