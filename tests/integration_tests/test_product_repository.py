@@ -1,6 +1,7 @@
 from argparse import Namespace
 import os
 import pytest
+import datetime
 
 from product_repository import add_products, ProductRepository, remove_products
 
@@ -17,31 +18,50 @@ def product_repository():
 
 
 @pytest.mark.order(1)
-def test_add_products(product_repository):
+def test_add_products(product_repository, init_resource):
     # given
+    namespace = Namespace(json_file_add="tests/test_files/products_to_add.json")
     assert product_repository.count() == 0
 
     # when
-    namespace = Namespace(json_file_add="products_to_add.json")
     add_products(namespace)
 
     # then
     assert product_repository.count() == 2
+    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+            == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
+    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
+            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 2)])
 
-    # spr search czy dod ok recordy
-    # sor czy za 2 add zniana quantity
+    # when
+    add_products(namespace)
+
+    # then
+    assert product_repository.count() == 2
+    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+            == [(1, "meat", "ham", datetime.date(2024, 9, 30), 2)])
+    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
+            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 4)])
 
 
 @pytest.mark.order(2)
 def test_remove_products(product_repository):
     # given
+    namespace = Namespace(json_file_remove="tests/test_files/products_to_remove.json")
     assert product_repository.count() == 2
 
     # when
-    namespace = Namespace(json_file_remove="products_to_remove.json")
+    remove_products(namespace)
+
+    # then
+    assert product_repository.count() == 2
+    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+            == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
+    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
+            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 2)])
+
+    # when
     remove_products(namespace)
 
     # then
     assert product_repository.count() == 0
-
-

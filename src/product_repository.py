@@ -5,6 +5,7 @@
 import json
 import os
 from argparse import Namespace
+from datetime import date
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -60,12 +61,12 @@ class ProductRepository(Repository):
 
             return product
 
-    def search(self, product: products.Product) -> list[tuple]:
+    def search(self, name: str, expiry_date: date) -> list[tuple]:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"SELECT * FROM products "
-                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+                           f"WHERE name = '{name}' AND expiry_date = '{expiry_date}';")
 
             return cursor.fetchall()
 
@@ -137,7 +138,7 @@ def add_products(args: Namespace) -> None:
                 port=int(os.environ.get("DB_PORT"))
             )
 
-            product_status = repo.search(product)
+            product_status = repo.search(product.name, product.expiry_date)
 
             if product_status:
                 # product_status is one-element list of tuples
