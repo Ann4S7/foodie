@@ -34,6 +34,10 @@ class Repository:
         """Remove the row from database."""
         raise NotImplemented
 
+    def count(self, *args, **kwargs):
+        """Count the rows."""
+        raise NotImplemented
+
 
 class ProductRepository(Repository):
 
