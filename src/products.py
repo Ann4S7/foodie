@@ -23,7 +23,7 @@ class Vegetable(Product):
 
 
 class Dairy(Product):
-    CATEGORY = "diary"
+    CATEGORY = "dairy"
 
 
 class Meat(Product):

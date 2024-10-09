@@ -3,7 +3,10 @@
 
 
 import json
+import os
 from argparse import Namespace
+from datetime import date
+from typing import Optional
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -32,12 +35,24 @@ class Repository:
         """Remove the row from database."""
         raise NotImplemented
 
+    def count(self, *args, **kwargs):
+        """Count the rows."""
+        raise NotImplemented
+
 
 class ProductRepository(Repository):
 
+    def __init__(self, database: Optional[str] = None, user: Optional[str] = None, host: Optional[str] = None,
+                 port: Optional[int] = None, password: Optional[str] = None):
+        self.database = database or os.environ.get("DB_NAME")
+        self.user = user or os.environ.get("DB_USER")
+        self.password = password or os.environ.get("DB_PASSWORD")
+        self.host = host or os.environ.get("DB_HOST")
+        self.port = port or int(os.environ.get("DB_PORT"))
+
     def get(self, product_id: int) -> products.Product:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
@@ -52,35 +67,43 @@ class ProductRepository(Repository):
 
             return product
 
-    def search(self, product: products.Product) -> list[tuple]:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+    def search(self, name: str, expiry_date: date) -> list[tuple]:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"SELECT * FROM products "
-                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+                           f"WHERE name = '{name}' AND expiry_date = '{expiry_date}';")
 
             return cursor.fetchall()
 
     def add(self, product: products.Product) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
     def update(self, product: products.Product) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
     def remove(self, product_id: int) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
+
+    def count(self) -> int:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
+
+            cursor.execute(f"SELECT COUNT (*) FROM products;")
+
+            return cursor.fetchall()[0][0]
 
 
 def get_product_class(category: str) -> type(products.Product):
@@ -115,7 +138,7 @@ def add_products(args: Namespace) -> None:
 
             repo = ProductRepository()
 
-            product_status = repo.search(product)
+            product_status = repo.search(product.name, product.expiry_date)
 
             if product_status:
                 # product_status is one-element list of tuples

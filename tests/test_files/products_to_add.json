@@ -1,0 +1,13 @@
+[
+  {
+    "category": "meat",
+    "name": "ham",
+    "expiry_date": "2024-09-30"
+  },
+  {
+    "category": "fruit",
+    "name": "banana",
+    "freshness_in_days": 3,
+    "quantity": 2
+  }
+]
