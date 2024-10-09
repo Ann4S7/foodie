@@ -14,4 +14,4 @@ Use: `pip install -r requirements.txt`
 Before running the tests, you need to change the value of environment variable (ENV) to "TEST".\
 Windows, PowerShell - command: `$Env:ENV="TEST"`\
 Run the tests from root project folder.\
-Use: `pytest --cov=src --cov-report html .\tests\<type_of_tests>\<specific_test>.py`
+Use: `pytest .\tests`
