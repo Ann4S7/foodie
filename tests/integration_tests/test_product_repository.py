@@ -4,6 +4,7 @@ import pytest
 import datetime
 
 from product_repository import add_products, ProductRepository, remove_products
+from utils import calculate_date
 
 
 @pytest.fixture
@@ -30,8 +31,8 @@ def test_add_products(product_repository, init_resource):
     assert product_repository.count() == 2
     assert (product_repository.search("ham", datetime.date(2024, 9, 30))
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
-    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
-            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 2)])
+    assert (product_repository.search("banana", calculate_date(3))
+            == [(2, "fruit", "banana",  calculate_date(3), 2)])
 
     # when
     add_products(namespace)
@@ -40,8 +41,8 @@ def test_add_products(product_repository, init_resource):
     assert product_repository.count() == 2
     assert (product_repository.search("ham", datetime.date(2024, 9, 30))
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 2)])
-    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
-            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 4)])
+    assert (product_repository.search("banana",  calculate_date(3))
+            == [(2, "fruit", "banana",  calculate_date(3), 4)])
 
 
 @pytest.mark.order(2)
@@ -57,8 +58,8 @@ def test_remove_products(product_repository):
     assert product_repository.count() == 2
     assert (product_repository.search("ham", datetime.date(2024, 9, 30))
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
-    assert (product_repository.search("milk", datetime.date(2024, 10, 5))
-            == [(2, "dairy", "milk", datetime.date(2024, 10, 5), 2)])
+    assert (product_repository.search("banana",  calculate_date(3))
+            == [(2, "fruit", "banana",  calculate_date(3), 2)])
 
     # when
     remove_products(namespace)
