@@ -3,6 +3,7 @@
 
 
 import json
+import os
 from argparse import Namespace
 
 from database_context_manager import DatabaseContextManager
@@ -35,9 +36,16 @@ class Repository:
 
 class ProductRepository(Repository):
 
+    def __init__(self, database, user="postgres", host="localhost", port=5432, password=None):
+        self.database = database
+        self.user = user
+        self.password = password
+        self.host = host
+        self.port = port
+
     def get(self, product_id: int) -> products.Product:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
@@ -53,8 +61,8 @@ class ProductRepository(Repository):
             return product
 
     def search(self, product: products.Product) -> list[tuple]:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"SELECT * FROM products "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
@@ -62,25 +70,33 @@ class ProductRepository(Repository):
             return cursor.fetchall()
 
     def add(self, product: products.Product) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
     def update(self, product: products.Product) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
     def remove(self, product_id: int) -> None:
-        with DatabaseContextManager(database="foodie_db", user="postgres", password="new_password",
-                                    host="localhost", port=5432) as cursor:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
+
+    def count(self) -> int:
+        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
+                                    host=self.host, port=self.port) as cursor:
+
+            cursor.execute(f"SELECT COUNT (*) FROM products;")
+
+            return cursor.fetchall()[0][0]
 
 
 def get_product_class(category: str) -> type(products.Product):
@@ -113,7 +129,13 @@ def add_products(args: Namespace) -> None:
                                     or calculate_date(product_dict["freshness_in_days"]),
                                     product_dict.get("quantity"))
 
-            repo = ProductRepository()
+            repo = ProductRepository(
+                database=os.environ.get("DB_NAME"),
+                host=os.environ.get("DB_HOST"),
+                user=os.environ.get("DB_USER"),
+                password=os.environ.get("DB_PASSWORD"),
+                port=int(os.environ.get("DB_PORT"))
+            )
 
             product_status = repo.search(product)
 
@@ -134,7 +156,13 @@ def remove_products(args: Namespace) -> None:
         for product_dict in products_list:
             product_id = product_dict["product_id"]
 
-            repo = ProductRepository()
+            repo = ProductRepository(
+                database=os.environ.get("DB_NAME"),
+                host=os.environ.get("DB_HOST"),
+                user=os.environ.get("DB_USER"),
+                password=os.environ.get("DB_PASSWORD"),
+                port=int(os.environ.get("DB_PORT"))
+            )
 
             product = repo.get(product_id)
 

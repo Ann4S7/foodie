@@ -1,7 +1,14 @@
 import argparse
+import os
 
-import product_repository
+from src import product_repository
 
+from dotenv import load_dotenv
+
+if os.environ.get("ENV") == "TEST":
+    load_dotenv(".env_test")
+else:
+    load_dotenv()
 
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(required=True)

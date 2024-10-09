@@ -1,0 +1,2 @@
+$Env:ENV="TEST"
+pytest .
