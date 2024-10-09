@@ -104,6 +104,16 @@ class ProductRepository(Repository):
             return cursor.fetchall()[0][0]
 
 
+def set_repository():
+    return ProductRepository(
+        database=os.environ.get("DB_NAME"),
+        host=os.environ.get("DB_HOST"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        port=int(os.environ.get("DB_PORT"))
+    )
+
+
 def get_product_class(category: str) -> type(products.Product):
     match category:
         case "fruit":
@@ -134,13 +144,7 @@ def add_products(args: Namespace) -> None:
                                     or calculate_date(product_dict["freshness_in_days"]),
                                     product_dict.get("quantity"))
 
-            repo = ProductRepository(
-                database=os.environ.get("DB_NAME"),
-                host=os.environ.get("DB_HOST"),
-                user=os.environ.get("DB_USER"),
-                password=os.environ.get("DB_PASSWORD"),
-                port=int(os.environ.get("DB_PORT"))
-            )
+            repo = set_repository()
 
             product_status = repo.search(product.name, product.expiry_date)
 
@@ -161,13 +165,7 @@ def remove_products(args: Namespace) -> None:
         for product_dict in products_list:
             product_id = product_dict["product_id"]
 
-            repo = ProductRepository(
-                database=os.environ.get("DB_NAME"),
-                host=os.environ.get("DB_HOST"),
-                user=os.environ.get("DB_USER"),
-                password=os.environ.get("DB_PASSWORD"),
-                port=int(os.environ.get("DB_PORT"))
-            )
+            repo = set_repository()
 
             product = repo.get(product_id)
 

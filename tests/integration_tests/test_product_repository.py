@@ -1,21 +1,14 @@
 from argparse import Namespace
-import os
 import pytest
 import datetime
 
-from product_repository import add_products, ProductRepository, remove_products
+from product_repository import add_products, remove_products, set_repository
 from utils import calculate_date
 
 
 @pytest.fixture
 def product_repository():
-    return ProductRepository(
-        database=os.environ.get("DB_NAME"),
-        host=os.environ.get("DB_HOST"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        port=int(os.environ.get("DB_PORT"))
-    )
+    return set_repository()
 
 
 @pytest.mark.order(1)
