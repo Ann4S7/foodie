@@ -192,9 +192,7 @@ def display_products(args: Namespace) -> list[tuple]:
 
         repo = ProductRepository()
 
-        result = repo.search(conditions=request_body.get("conditions"), columns=request_body.get("columns"),
+        result = repo.search(conditions=request_body.get("conditions"), columns=request_body.get("columns", "*"),
                              limit=request_body.get("limit"))
-
-        print(result)
 
         return result

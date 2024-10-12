@@ -6,6 +6,6 @@
             "value": 4
         }
     },
-        "columns": "name, expiry_date, quantity",
-        "limit": 5
+    "columns": "name, expiry_date, quantity",
+    "limit": 5
 }
