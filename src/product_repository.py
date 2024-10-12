@@ -67,12 +67,27 @@ class ProductRepository(Repository):
 
             return product
 
-    def search(self, name: str, expiry_date: date) -> list[tuple]:
+    def search(self, conditions: Optional[dict] = None, columns: str = "*", limit: Optional[int] = None) -> list[tuple]:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            cursor.execute(f"SELECT * FROM products "
-                           f"WHERE name = '{name}' AND expiry_date = '{expiry_date}';")
+            query = f"SELECT {columns} FROM products"
+
+            if conditions:
+                where_conditions = []
+                for attribute_name, attribute_value in conditions.items():
+                    if isinstance(attribute_value, dict):
+                        where_conditions.append(f"{attribute_name} {attribute_value.get("operator")}"
+                                                f" '{attribute_value.get("value")}'")
+                    else:
+                        where_conditions.append(f"{attribute_name} = '{attribute_value}'")
+
+                query += " WHERE " + " AND ".join(where_conditions)
+
+            if limit:
+                query += f" LIMIT {limit}"
+
+            cursor.execute(query)
 
             return cursor.fetchall()
 
@@ -138,7 +153,7 @@ def add_products(args: Namespace) -> None:
 
             repo = ProductRepository()
 
-            product_status = repo.search(product.name, product.expiry_date)
+            product_status = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
 
             if product_status:
                 # product_status is one-element list of tuples
@@ -168,3 +183,16 @@ def remove_products(args: Namespace) -> None:
                 repo.update(product)
             else:
                 repo.remove(product_id)
+
+
+def display_products(args: Namespace) -> list[tuple]:
+    with open(args.json_file_display) as file:
+        request_body = file.read()
+        request_body = json.loads(request_body)
+
+        repo = ProductRepository()
+
+        result = repo.search(conditions=request_body.get("conditions"), columns=request_body.get("columns", "*"),
+                             limit=request_body.get("limit"))
+
+        return result

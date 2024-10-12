@@ -2,7 +2,7 @@ from argparse import Namespace
 import pytest
 import datetime
 
-from product_repository import add_products, ProductRepository, remove_products
+from product_repository import add_products, display_products, ProductRepository, remove_products
 from utils import calculate_date
 
 
@@ -22,9 +22,9 @@ def test_add_products(product_repository, init_resource):
 
     # then
     assert product_repository.count() == 2
-    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+    assert (product_repository.search(conditions={"name": "ham", "expiry_date": datetime.date(2024, 9, 30)})
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
-    assert (product_repository.search("banana", calculate_date(3))
+    assert (product_repository.search(conditions={"name": "banana",  "expiry_date": calculate_date(3)})
             == [(2, "fruit", "banana",  calculate_date(3), 2)])
 
     # when
@@ -32,13 +32,34 @@ def test_add_products(product_repository, init_resource):
 
     # then
     assert product_repository.count() == 2
-    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+    assert (product_repository.search(conditions={"name": "ham", "expiry_date": datetime.date(2024, 9, 30)})
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 2)])
-    assert (product_repository.search("banana",  calculate_date(3))
+    assert (product_repository.search(conditions={"name": "banana",  "expiry_date": calculate_date(3)})
             == [(2, "fruit", "banana",  calculate_date(3), 4)])
 
 
 @pytest.mark.order(2)
+@pytest.mark.parametrize(
+    "file_version, expected_result",
+    [
+        ("1", [("banana",  calculate_date(3), 4)]),
+        ("2", [(1, "meat", "ham", datetime.date(2024, 9, 30), 2)]),
+        ("3", [(1, "meat", "ham", datetime.date(2024, 9, 30), 2),
+               (2, "fruit", "banana",  calculate_date(3), 4)])
+    ]
+)
+def test_display_products(product_repository, file_version, expected_result):
+    # given
+    namespace = Namespace(json_file_display=f"tests/test_files/products_to_display_{file_version}.json")
+
+    # when
+    feedback = display_products(namespace)
+
+    # then
+    assert feedback == expected_result
+
+
+@pytest.mark.order(3)
 def test_remove_products(product_repository):
     # given
     namespace = Namespace(json_file_remove="tests/test_files/products_to_remove.json")
@@ -49,9 +70,9 @@ def test_remove_products(product_repository):
 
     # then
     assert product_repository.count() == 2
-    assert (product_repository.search("ham", datetime.date(2024, 9, 30))
+    assert (product_repository.search(conditions={"name": "ham", "expiry_date": datetime.date(2024, 9, 30)})
             == [(1, "meat", "ham", datetime.date(2024, 9, 30), 1)])
-    assert (product_repository.search("banana",  calculate_date(3))
+    assert (product_repository.search(conditions={"name": "banana",  "expiry_date": calculate_date(3)})
             == [(2, "fruit", "banana",  calculate_date(3), 2)])
 
     # when

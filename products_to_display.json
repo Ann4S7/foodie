@@ -1,0 +1,15 @@
+{
+    "conditions": {
+        "category": "meat",
+        "expiry_date": {
+            "operator": "<",
+            "value": "2024-10-13"
+        },
+        "quantity": {
+            "operator": "<",
+            "value": 5
+        }
+    },
+    "columns": "name, expiry_date, quantity",
+    "limit": 5
+}
