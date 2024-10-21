@@ -50,13 +50,13 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Getting product...",
+            logger.info("Getting product...",
                         extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
 
-            logger.info(f"Getting product is completed.")
+            logger.info("Getting product is completed.")
 
             products_list = cursor.fetchall()
 
@@ -72,7 +72,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Searching products...",
+            logger.info("Searching products...",
                         extra={"extra_parameters": {"conditions": conditions, "columns": columns, "limit": limit}})
 
             query = f"SELECT {columns} FROM products"
@@ -93,7 +93,7 @@ class ProductRepository(Repository):
 
             cursor.execute(query)
 
-            logger.info(f"Search completed.")
+            logger.info("Search completed.")
 
             return cursor.fetchall()
 
@@ -101,7 +101,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Adding product...",
+            logger.info("Adding product...",
                         extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
@@ -109,31 +109,31 @@ class ProductRepository(Repository):
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
 
-            logger.info(f"Adding completed.")
+            logger.info("Adding completed.")
 
     def update(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Updating quantity of the product...",
+            logger.info("Updating quantity of the product...",
                         extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
 
-            logger.info(f"Updating completed.")
+            logger.info("Updating completed.")
 
     def remove(self, product_id: int) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Removing product...",
+            logger.info("Removing product...",
                         extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
 
-            logger.info(f"Removing completed.")
+            logger.info("Removing completed.")
 
     def count(self) -> int:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
@@ -143,7 +143,7 @@ class ProductRepository(Repository):
 
             cursor.execute(f"SELECT COUNT (*) FROM products;")
 
-            logger.info(f"Counting completed.")
+            logger.info("Counting completed.")
 
             return cursor.fetchall()[0][0]
 
@@ -173,22 +173,31 @@ def add_products(args: Namespace) -> None:
 
         for product_dict in products_list:
             product_class = get_product_class(product_dict["category"])
-            product = product_class(product_dict["name"],
-                                    product_dict.get("expiry_date")
-                                    or calculate_date(product_dict["freshness_in_days"]),
-                                    product_dict.get("quantity"))
-
-            repo = ProductRepository()
-
-            product_status = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
-
-            if product_status:
-                # product_status is one-element list of tuples
-                # the last element of the tuple is quantity value
-                product.quantity = product.quantity + product_status[0][-1]
-                repo.update(product)
+            if product_class == products.Product:
+                logger.warning("Invalid product category.",
+                               extra={"extra_parameters": {"category": product_dict["category"]}})
             else:
-                repo.add(product)
+                product = product_class(product_dict["name"],
+                                        product_dict.get("expiry_date")
+                                        or calculate_date(product_dict["freshness_in_days"]),
+                                        product_dict.get("quantity"))
+
+                repo = ProductRepository()
+
+                product_status = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
+
+                if product_status:
+                    if len(product_status) == 1:
+                        # product_status is one-element list of tuples
+                        # the last element of the tuple is quantity value
+                        product.quantity = product.quantity + product_status[0][-1]
+                        repo.update(product)
+                    else:
+                        logger.warning("There are more than 1 rows in the database storing the same product.",
+                                       extra={"extra_parameters": {
+                                           "name": product.name, "expiry_date": product.expiry_date}})
+                else:
+                    repo.add(product)
 
 
 def remove_products(args: Namespace) -> None:
@@ -201,15 +210,21 @@ def remove_products(args: Namespace) -> None:
 
             repo = ProductRepository()
 
-            product = repo.get(product_id)
+            try:
+                product = repo.get(product_id)
+            except IndexError:
+                product = None
+                logger.error("Invalid product id.",
+                             extra={"extra_parameters": {"product_id": product_dict["product_id"]}})
 
-            quantity_used = product_dict.get("quantity", product.DEFAULT_QUANTITY)
+            if product:
+                quantity_used = product_dict.get("quantity", product.DEFAULT_QUANTITY)
 
-            if product.quantity > quantity_used:
-                product.quantity = product.quantity - quantity_used
-                repo.update(product)
-            else:
-                repo.remove(product_id)
+                if product.quantity > quantity_used:
+                    product.quantity = product.quantity - quantity_used
+                    repo.update(product)
+                else:
+                    repo.remove(product_id)
 
 
 def display_products(args: Namespace) -> list[tuple]:
