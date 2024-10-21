@@ -17,7 +17,7 @@ class DatabaseContextManager:
         self.connection = psycopg2.connect(database=self.database, user=self.user, password=self.password,
                                            host=self.host, port=self.port)
 
-        logging.info(f"Connected to the database: {self.database}.",
+        logging.info(f"Connected to the database.",
                      extra={"extra_parameters": {
                          "database": self.database, "user": self.user, "host": self.host, "port": self.port
                      }})
@@ -30,7 +30,7 @@ class DatabaseContextManager:
         self.cursor.close()
         self.connection.close()
 
-        logging.info(f"Disconnected from the database: {self.database}.")
+        logging.info(f"Disconnected from the database.")
 
         if exc_type:
             print(exc_type, exc_value, exc_tb)

@@ -50,7 +50,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Getting product (id={product_id})...",
+            logger.info(f"Getting product...",
                         extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
@@ -101,7 +101,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Adding product {product}...",
+            logger.info(f"Adding product...",
                         extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
@@ -115,7 +115,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Updating quantity of the product: {product.name} - {product.expiry_date}...",
+            logger.info(f"Updating quantity of the product...",
                         extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
@@ -128,7 +128,7 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
-            logger.info(f"Removing product (id={product_id})...",
+            logger.info(f"Removing product...",
                         extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
