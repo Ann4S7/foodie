@@ -51,7 +51,7 @@ class ProductRepository(Repository):
                                     host=self.host, port=self.port) as cursor:
 
             logger.info(f"Getting product (id={product_id})...",
-                        extra={"query_parameters": {"product_id": product_id}})
+                        extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
@@ -73,7 +73,7 @@ class ProductRepository(Repository):
                                     host=self.host, port=self.port) as cursor:
 
             logger.info(f"Searching products...",
-                        extra={"query_parameters": {"conditions": conditions, "columns": columns, "limit": limit}})
+                        extra={"extra_parameters": {"conditions": conditions, "columns": columns, "limit": limit}})
 
             query = f"SELECT {columns} FROM products"
 
@@ -102,7 +102,7 @@ class ProductRepository(Repository):
                                     host=self.host, port=self.port) as cursor:
 
             logger.info(f"Adding product {product}...",
-                        extra={"query_parameters": {"category": product.CATEGORY, "name": product.name,
+                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
             cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
@@ -116,7 +116,7 @@ class ProductRepository(Repository):
                                     host=self.host, port=self.port) as cursor:
 
             logger.info(f"Updating quantity of the product: {product.name} - {product.expiry_date}...",
-                        extra={"query_parameters": {"category": product.CATEGORY, "name": product.name,
+                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
                                                     "expiry_date": product.expiry_date, "quantity": product.quantity}})
 
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
@@ -129,7 +129,7 @@ class ProductRepository(Repository):
                                     host=self.host, port=self.port) as cursor:
 
             logger.info(f"Removing product (id={product_id})...",
-                        extra={"query_parameters": {"product_id": product_id}})
+                        extra={"extra_parameters": {"product_id": product_id}})
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
 

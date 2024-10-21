@@ -17,8 +17,10 @@ class DatabaseContextManager:
         self.connection = psycopg2.connect(database=self.database, user=self.user, password=self.password,
                                            host=self.host, port=self.port)
 
-        logging.info(f"Connected to the database: {self.database}. "
-                     f"Database details: user={self.user}, host={self.host}, port={self.port}.")
+        logging.info(f"Connected to the database: {self.database}.",
+                     extra={"extra_parameters": {
+                         "database": self.database, "user": self.user, "host": self.host, "port": self.port
+                     }})
 
         self.cursor = self.connection.cursor()
         return self.cursor

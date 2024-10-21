@@ -9,8 +9,8 @@ class CustomJsonFormatter(logging.Formatter):
         super(CustomJsonFormatter, self).format(record)
         log_time = strftime("%Y-%m-%d %H:%M", localtime())
         log_dict = {"time": log_time, "levelname": record.levelname, "message": record.message}
-        if hasattr(record, "query_parameters"):
-            log_dict.update(record.query_parameters)
+        if hasattr(record, "extra_parameters"):
+            log_dict.update(record.extra_parameters)
 
         return json.dumps(log_dict, default=str)
 
