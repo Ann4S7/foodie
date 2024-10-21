@@ -11,7 +11,7 @@ class Product:
         self.quantity = quantity or self.DEFAULT_QUANTITY
 
     def __repr__(self) -> str:
-        return f"({self.name}, expiry date: {self.expiry_date})"
+        return f"(name: {self.name}, expiry date: {self.expiry_date}, quantity: {self.quantity})"
 
 
 class Fruit(Product):

@@ -1,12 +1,8 @@
-# TODO improve naming
-# TODO add the ability to display products
-
-
 import json
 import os
 from argparse import Namespace
-from datetime import date
 from typing import Optional
+from conflog import logger
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -54,8 +50,13 @@ class ProductRepository(Repository):
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
+            logger.info(f"Getting product...",
+                        extra={"extra_parameters": {"product_id": product_id}})
+
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
+
+            logger.info(f"Getting product is completed.")
 
             products_list = cursor.fetchall()
 
@@ -70,6 +71,9 @@ class ProductRepository(Repository):
     def search(self, conditions: Optional[dict] = None, columns: str = "*", limit: Optional[int] = None) -> list[tuple]:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
+
+            logger.info(f"Searching products...",
+                        extra={"extra_parameters": {"conditions": conditions, "columns": columns, "limit": limit}})
 
             query = f"SELECT {columns} FROM products"
 
@@ -89,34 +93,57 @@ class ProductRepository(Repository):
 
             cursor.execute(query)
 
+            logger.info(f"Search completed.")
+
             return cursor.fetchall()
 
     def add(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
+            logger.info(f"Adding product...",
+                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
+                                                    "expiry_date": product.expiry_date, "quantity": product.quantity}})
+
             cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
                            f"VALUES('{product.CATEGORY}', '{product.name}',"
                            f"'{product.expiry_date}', {product.quantity});")
+
+            logger.info(f"Adding completed.")
 
     def update(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
+            logger.info(f"Updating quantity of the product...",
+                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
+                                                    "expiry_date": product.expiry_date, "quantity": product.quantity}})
+
             cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
                            f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+
+            logger.info(f"Updating completed.")
 
     def remove(self, product_id: int) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
+            logger.info(f"Removing product...",
+                        extra={"extra_parameters": {"product_id": product_id}})
+
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
+
+            logger.info(f"Removing completed.")
 
     def count(self) -> int:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
+            logger.info("Counting all products...")
+
             cursor.execute(f"SELECT COUNT (*) FROM products;")
+
+            logger.info(f"Counting completed.")
 
             return cursor.fetchall()[0][0]
 
