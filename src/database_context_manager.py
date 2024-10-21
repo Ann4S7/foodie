@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import extensions
 import traceback
+import logging
 
 
 class DatabaseContextManager:
@@ -16,6 +17,9 @@ class DatabaseContextManager:
         self.connection = psycopg2.connect(database=self.database, user=self.user, password=self.password,
                                            host=self.host, port=self.port)
 
+        logging.info(f"Connected to the database: {self.database}. "
+                     f"Database details: user={self.user}, host={self.host}, port={self.port}.")
+
         self.cursor = self.connection.cursor()
         return self.cursor
 
@@ -23,5 +27,8 @@ class DatabaseContextManager:
         self.connection.commit()
         self.cursor.close()
         self.connection.close()
+
+        logging.info(f"Disconnected from the database: {self.database}.")
+
         if exc_type:
             print(exc_type, exc_value, exc_tb)
