@@ -1,7 +1,7 @@
 import json
 import os
 from argparse import Namespace
-from typing import Optional
+from typing import Optional, Union
 from conflog import logger
 
 from database_context_manager import DatabaseContextManager
@@ -46,7 +46,7 @@ class ProductRepository(Repository):
         self.host = host or os.environ.get("DB_HOST")
         self.port = port or int(os.environ.get("DB_PORT"))
 
-    def get(self, product_id: int) -> products.Product:
+    def get(self, product_id: int) -> Union[products.Product, None]:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
@@ -56,8 +56,6 @@ class ProductRepository(Repository):
             cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
                            f"WHERE product_id = '{product_id}';")
 
-            logger.info("Getting product is completed.")
-
             products_list = cursor.fetchall()
 
             if products_list:
@@ -66,9 +64,10 @@ class ProductRepository(Repository):
                 product = product_class(product_tuple[1],
                                         product_tuple[2],
                                         product_tuple[3])
+                logger.info("Getting product is completed.")
             else:
                 product = None
-                logger.error("Invalid product id.",
+                logger.error("Product not found.",
                              extra={"extra_parameters": {"product_id": product_id}})
 
             return product
@@ -90,7 +89,6 @@ class ProductRepository(Repository):
                                                 f" '{attribute_value.get("value")}'")
                     else:
                         where_conditions.append(f"{attribute_name} = '{attribute_value}'")
-
                 query += " WHERE " + " AND ".join(where_conditions)
 
             if limit:
@@ -100,16 +98,19 @@ class ProductRepository(Repository):
 
             logger.info("Search completed.")
 
-            found_products = cursor.fetchall()
+            return cursor.fetchall()
 
-            if conditions:
-                if "name" in conditions and "expiry_date" in conditions:
-                    if len(found_products) > 1:
-                        logger.warning("There are more than 1 rows in the database storing the same product.",
-                                       extra={"extra_parameters": {
-                                           "name": conditions["name"], "expiry_date": conditions["expiry_date"]}})
+    @staticmethod
+    def get_by_name_date(conditions: dict) -> list[tuple]:
+        repo = ProductRepository()
+        found_product = repo.search(conditions)
 
-            return found_products
+        if len(found_product) > 1:
+            logger.warning("There are more than 1 rows in the database storing the same product.",
+                           extra={"extra_parameters": {
+                               "name": conditions["name"], "expiry_date": conditions["expiry_date"]}})
+
+        return found_product
 
     def add(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
@@ -196,13 +197,12 @@ def add_products(args: Namespace) -> None:
                                         product_dict.get("quantity"))
 
                 repo = ProductRepository()
+                found_product = repo.get_by_name_date(conditions={"name": product.name, "expiry_date": product.expiry_date})
 
-                found_products = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
-
-                if found_products:
+                if found_product:
                     # product_status is one-element list of tuples
                     # the last element of the tuple is quantity value
-                    product.quantity = product.quantity + found_products[0][-1]
+                    product.quantity = product.quantity + found_product[0][-1]
                     repo.update(product)
                 else:
                     repo.add(product)
@@ -217,12 +217,10 @@ def remove_products(args: Namespace) -> None:
             product_id = product_dict["product_id"]
 
             repo = ProductRepository()
-
             product = repo.get(product_id)
 
             if product:
                 quantity_used = product_dict.get("quantity", product.DEFAULT_QUANTITY)
-
                 if product.quantity > quantity_used:
                     product.quantity = product.quantity - quantity_used
                     repo.update(product)
@@ -236,7 +234,6 @@ def display_products(args: Namespace) -> list[tuple]:
         request_body = json.loads(request_body)
 
         repo = ProductRepository()
-
         result = repo.search(conditions=request_body.get("conditions"), columns=request_body.get("columns", "*"),
                              limit=request_body.get("limit"))
 
