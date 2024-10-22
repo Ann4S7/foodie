@@ -1,8 +1,9 @@
 import json
 import os
 from argparse import Namespace
-from typing import Optional, Union
+from typing import Optional
 from conflog import logger
+from datetime import date
 
 from database_context_manager import DatabaseContextManager
 import products
@@ -46,7 +47,7 @@ class ProductRepository(Repository):
         self.host = host or os.environ.get("DB_HOST")
         self.port = port or int(os.environ.get("DB_PORT"))
 
-    def get(self, product_id: int) -> Union[products.Product, None]:
+    def get(self, product_id: int) -> Optional[products.Product]:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
                                     host=self.host, port=self.port) as cursor:
 
@@ -100,17 +101,15 @@ class ProductRepository(Repository):
 
             return cursor.fetchall()
 
-    @staticmethod
-    def get_by_name_date(conditions: dict) -> list[tuple]:
-        repo = ProductRepository()
-        found_product = repo.search(conditions)
+    def get_by_name_and_date(self, name: str, expiry_date: date) -> list[tuple]:
+        product = self.search(conditions={"name": name, "expiry_date": expiry_date})
 
-        if len(found_product) > 1:
+        if len(product) > 1:
             logger.warning("There are more than 1 rows in the database storing the same product.",
                            extra={"extra_parameters": {
-                               "name": conditions["name"], "expiry_date": conditions["expiry_date"]}})
+                               "name": name, "expiry_date": expiry_date}})
 
-        return found_product
+        return product
 
     def add(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
@@ -188,6 +187,8 @@ def add_products(args: Namespace) -> None:
         products_list = file.read()
         products_list = json.loads(products_list)
 
+        repo = ProductRepository()
+
         for product_dict in products_list:
             product_class = get_product_class(product_dict["category"])
             if product_class != products.Product:
@@ -196,8 +197,7 @@ def add_products(args: Namespace) -> None:
                                         or calculate_date(product_dict["freshness_in_days"]),
                                         product_dict.get("quantity"))
 
-                repo = ProductRepository()
-                found_product = repo.get_by_name_date(conditions={"name": product.name, "expiry_date": product.expiry_date})
+                found_product = repo.get_by_name_and_date(product.name, product.expiry_date)
 
                 if found_product:
                     # product_status is one-element list of tuples
@@ -213,10 +213,11 @@ def remove_products(args: Namespace) -> None:
         products_list = file.read()
         products_list = json.loads(products_list)
 
+        repo = ProductRepository()
+
         for product_dict in products_list:
             product_id = product_dict["product_id"]
 
-            repo = ProductRepository()
             product = repo.get(product_id)
 
             if product:
