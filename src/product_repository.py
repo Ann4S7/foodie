@@ -60,11 +60,16 @@ class ProductRepository(Repository):
 
             products_list = cursor.fetchall()
 
-            product_tuple = products_list[0]
-            product_class = get_product_class(product_tuple[0])
-            product = product_class(product_tuple[1],
-                                    product_tuple[2],
-                                    product_tuple[3])
+            if products_list:
+                product_tuple = products_list[0]
+                product_class = get_product_class(product_tuple[0])
+                product = product_class(product_tuple[1],
+                                        product_tuple[2],
+                                        product_tuple[3])
+            else:
+                product = None
+                logger.error("Invalid product id.",
+                             extra={"extra_parameters": {"product_id": product_id}})
 
             return product
 
@@ -95,7 +100,16 @@ class ProductRepository(Repository):
 
             logger.info("Search completed.")
 
-            return cursor.fetchall()
+            found_products = cursor.fetchall()
+
+            if conditions:
+                if "name" in conditions and "expiry_date" in conditions:
+                    if len(found_products) > 1:
+                        logger.warning("There are more than 1 rows in the database storing the same product.",
+                                       extra={"extra_parameters": {
+                                           "name": conditions["name"], "expiry_date": conditions["expiry_date"]}})
+
+            return found_products
 
     def add(self, product: products.Product) -> None:
         with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
@@ -162,6 +176,8 @@ def get_product_class(category: str) -> type(products.Product):
             product_class = products.Grain
         case _:
             product_class = products.Product
+            logger.warning("Invalid product category.",
+                           extra={"extra_parameters": {"category": category}})
 
     return product_class
 
@@ -173,10 +189,7 @@ def add_products(args: Namespace) -> None:
 
         for product_dict in products_list:
             product_class = get_product_class(product_dict["category"])
-            if product_class == products.Product:
-                logger.warning("Invalid product category.",
-                               extra={"extra_parameters": {"category": product_dict["category"]}})
-            else:
+            if product_class != products.Product:
                 product = product_class(product_dict["name"],
                                         product_dict.get("expiry_date")
                                         or calculate_date(product_dict["freshness_in_days"]),
@@ -184,18 +197,13 @@ def add_products(args: Namespace) -> None:
 
                 repo = ProductRepository()
 
-                product_status = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
+                found_products = repo.search(conditions={"name": product.name, "expiry_date": product.expiry_date})
 
-                if product_status:
-                    if len(product_status) == 1:
-                        # product_status is one-element list of tuples
-                        # the last element of the tuple is quantity value
-                        product.quantity = product.quantity + product_status[0][-1]
-                        repo.update(product)
-                    else:
-                        logger.warning("There are more than 1 rows in the database storing the same product.",
-                                       extra={"extra_parameters": {
-                                           "name": product.name, "expiry_date": product.expiry_date}})
+                if found_products:
+                    # product_status is one-element list of tuples
+                    # the last element of the tuple is quantity value
+                    product.quantity = product.quantity + found_products[0][-1]
+                    repo.update(product)
                 else:
                     repo.add(product)
 
@@ -210,12 +218,7 @@ def remove_products(args: Namespace) -> None:
 
             repo = ProductRepository()
 
-            try:
-                product = repo.get(product_id)
-            except IndexError:
-                product = None
-                logger.error("Invalid product id.",
-                             extra={"extra_parameters": {"product_id": product_dict["product_id"]}})
+            product = repo.get(product_id)
 
             if product:
                 quantity_used = product_dict.get("quantity", product.DEFAULT_QUANTITY)
