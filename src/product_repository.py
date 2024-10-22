@@ -1,12 +1,12 @@
 import json
 import os
 from argparse import Namespace
-from typing import Optional
-from conflog import logger
 from datetime import date
+from typing import Optional
 
-from database_context_manager import DatabaseContextManager
 import products
+from conflog import logger
+from database_context_manager import DatabaseContextManager
 from utils import calculate_date
 
 

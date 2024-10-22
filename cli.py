@@ -1,9 +1,9 @@
 import argparse
 import os
 
-from src import product_repository
-
 from dotenv import load_dotenv
+
+from src import product_repository
 
 if os.environ.get("ENV") == "TEST":
     load_dotenv(".env_test")

@@ -1,7 +1,7 @@
-import logging
 import json
-from time import strftime, localtime
+import logging
 import os
+from time import localtime, strftime
 
 
 class CustomJsonFormatter(logging.Formatter):

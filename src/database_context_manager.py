@@ -1,7 +1,8 @@
+import logging
+import traceback
+
 import psycopg2
 from psycopg2 import extensions
-import traceback
-import logging
 
 
 class DatabaseContextManager:

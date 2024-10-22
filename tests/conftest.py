@@ -1,10 +1,9 @@
 import os
 
-from dotenv import load_dotenv
 import pytest
+from dotenv import load_dotenv
 
 import db_utils
-
 
 if os.environ.get("ENV") == "TEST":
     load_dotenv(".env_test")
