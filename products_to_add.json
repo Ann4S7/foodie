@@ -1,12 +1,13 @@
 [
   {
-    "category": "meat",
-    "name": "ham",
-    "expiry_date": "2024-09-30"
+    "category": "dairy",
+    "name": "milk",
+    "expiry_date": "2024-11-05",
+    "quantity": 2
   },
   {
     "category": "fruit",
-    "name": "banana",
-    "freshness_in_days": 3
+    "name": "mango",
+    "freshness_in_days": 5
   }
 ]

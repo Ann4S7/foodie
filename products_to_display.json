@@ -1,9 +1,9 @@
 {
     "conditions": {
-        "category": "meat",
+        "category": "fruit",
         "expiry_date": {
             "operator": "<",
-            "value": "2024-10-13"
+            "value": "2024-10-30"
         },
         "quantity": {
             "operator": "<",
