@@ -17,6 +17,7 @@ def product_repository():
     return ProductRepository()
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 @pytest.mark.order(1)
 def test_add_products(product_repository, init_resource):
     # given
@@ -48,6 +49,7 @@ def test_add_products(product_repository, init_resource):
     ) == [(2, "fruit", "banana", calculate_date(3), 4)]
 
 
+# pylint: disable=redefined-outer-name
 @pytest.mark.order(2)
 @pytest.mark.parametrize(
     "file_version, expected_result",
@@ -63,7 +65,7 @@ def test_add_products(product_repository, init_resource):
         ),
     ],
 )
-def test_display_products(product_repository, file_version, expected_result):
+def test_display_products(file_version, expected_result):
     # given
     namespace = Namespace(
         json_file_display=f"tests/test_files/products_to_display_{file_version}.json"
@@ -76,6 +78,7 @@ def test_display_products(product_repository, file_version, expected_result):
     assert feedback == expected_result
 
 
+# pylint: disable=redefined-outer-name
 @pytest.mark.order(3)
 def test_remove_products(product_repository):
     # given
