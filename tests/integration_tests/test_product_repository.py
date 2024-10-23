@@ -3,8 +3,12 @@ from argparse import Namespace
 
 import pytest
 
-from product_repository import (ProductRepository, add_products,
-                                display_products, remove_products)
+from product_repository import (
+    ProductRepository,
+    add_products,
+    display_products,
+    remove_products,
+)
 from utils import calculate_date
 
 

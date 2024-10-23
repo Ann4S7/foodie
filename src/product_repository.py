@@ -14,27 +14,27 @@ class Repository:
 
     def get(self, *args, **kwargs):
         """Get the row from database by id."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def search(self, *args, **kwargs):
         """Get the row from database by name and expiry date."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def add(self, *args, **kwargs):
         """Add the row to database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def update(self, *args, **kwargs):
         """Update the row in database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def remove(self, *args, **kwargs):
         """Remove the row from database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def count(self, *args, **kwargs):
         """Count the rows."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class ProductRepository(Repository):
@@ -237,7 +237,7 @@ class ProductRepository(Repository):
 
             logger.info("Counting all products...")
 
-            cursor.execute(f"SELECT COUNT (*) FROM products;")
+            cursor.execute("SELECT COUNT (*) FROM products;")
 
             logger.info("Counting completed.")
 
@@ -267,7 +267,7 @@ def get_product_class(category: str) -> type(products.Product):
 
 
 def add_products(args: Namespace) -> None:
-    with open(args.json_file_add) as file:
+    with open(args.json_file_add, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
 
@@ -297,7 +297,7 @@ def add_products(args: Namespace) -> None:
 
 
 def remove_products(args: Namespace) -> None:
-    with open(args.json_file_remove) as file:
+    with open(args.json_file_remove, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
 
@@ -318,7 +318,7 @@ def remove_products(args: Namespace) -> None:
 
 
 def display_products(args: Namespace) -> list[tuple]:
-    with open(args.json_file_display) as file:
+    with open(args.json_file_display, encoding="utf-8") as file:
         request_body = file.read()
         request_body = json.loads(request_body)
 

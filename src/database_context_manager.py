@@ -15,6 +15,8 @@ class DatabaseContextManager:
         self.password = password
         self.host = host
         self.port = port
+        self.connection = None
+        self.cursor = None
 
     def __enter__(self) -> extensions.cursor:
         self.connection = psycopg2.connect(
