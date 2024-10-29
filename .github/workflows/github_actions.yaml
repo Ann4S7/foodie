@@ -10,15 +10,11 @@ jobs:
       - uses: actions/setup-python@v3
 #      - name: Pytest installation
 #        run: pip install pytest
-#      - name: Run tests
-#        run: |
-#          set ENV=TEST
-#          python pytest .
-#      - run: $Env:PYTHONPATH="%cd%\src"
-#      - run: $Env:PYTHONPATH
-#      - run: pip install -r requirements.txt
-      - run: |
+      - name: Run tests
+        run: |
+          pip install -r requirements.txt
           $env:GITHUB_ENV="TEST"
           echo "$env:GITHUB_ENV"
-#      - run:
-#      - run: pytest
+          $Env:PYTHONPATH="%cd%\src"
+          echo "$Env:PYTHONPATH"
+          pytest
