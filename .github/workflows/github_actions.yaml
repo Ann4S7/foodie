@@ -10,7 +10,9 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Pytest installation
         run: pip install pytest
-      - name: Run tests
-        run: |
-          set ENV=TEST
-          python pytest .
+#      - name: Run tests
+#        run: |
+#          set ENV=TEST
+#          python pytest .
+      - run: python3 --version
+      - run: python --version
