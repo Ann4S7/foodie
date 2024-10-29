@@ -1,12 +1,12 @@
 import json
 import os
 from argparse import Namespace
-from typing import Optional
-from conflog import logger
 from datetime import date
+from typing import Optional
 
-from database_context_manager import DatabaseContextManager
 import products
+from conflog import logger
+from database_context_manager import DatabaseContextManager
 from utils import calculate_date
 
 
@@ -14,33 +14,39 @@ class Repository:
 
     def get(self, *args, **kwargs):
         """Get the row from database by id."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def search(self, *args, **kwargs):
         """Get the row from database by name and expiry date."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def add(self, *args, **kwargs):
         """Add the row to database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def update(self, *args, **kwargs):
         """Update the row in database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def remove(self, *args, **kwargs):
         """Remove the row from database."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def count(self, *args, **kwargs):
         """Count the rows."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class ProductRepository(Repository):
 
-    def __init__(self, database: Optional[str] = None, user: Optional[str] = None, host: Optional[str] = None,
-                 port: Optional[int] = None, password: Optional[str] = None):
+    def __init__(
+        self,
+        database: Optional[str] = None,
+        user: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        password: Optional[str] = None,
+    ):
         self.database = database or os.environ.get("DB_NAME")
         self.user = user or os.environ.get("DB_USER")
         self.password = password or os.environ.get("DB_PASSWORD")
@@ -48,37 +54,66 @@ class ProductRepository(Repository):
         self.port = port or int(os.environ.get("DB_PORT"))
 
     def get(self, product_id: int) -> Optional[products.Product]:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
-            logger.info("Getting product...",
-                        extra={"extra_parameters": {"product_id": product_id}})
+            logger.info(
+                "Getting product...",
+                extra={"extra_parameters": {"product_id": product_id}},
+            )
 
-            cursor.execute(f"SELECT category, name, expiry_date, quantity FROM products "
-                           f"WHERE product_id = '{product_id}';")
+            cursor.execute(
+                f"SELECT category, name, expiry_date, quantity FROM products "
+                f"WHERE product_id = '{product_id}';"
+            )
 
             products_list = cursor.fetchall()
 
             if products_list:
                 product_tuple = products_list[0]
                 product_class = get_product_class(product_tuple[0])
-                product = product_class(product_tuple[1],
-                                        product_tuple[2],
-                                        product_tuple[3])
+                product = product_class(
+                    product_tuple[1], product_tuple[2], product_tuple[3]
+                )
                 logger.info("Getting product is completed.")
             else:
                 product = None
-                logger.error("Product not found.",
-                             extra={"extra_parameters": {"product_id": product_id}})
+                logger.error(
+                    "Product not found.",
+                    extra={"extra_parameters": {"product_id": product_id}},
+                )
 
             return product
 
-    def search(self, conditions: Optional[dict] = None, columns: str = "*", limit: Optional[int] = None) -> list[tuple]:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+    def search(
+        self,
+        conditions: Optional[dict] = None,
+        columns: str = "*",
+        limit: Optional[int] = None,
+    ) -> list[tuple]:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
-            logger.info("Searching products...",
-                        extra={"extra_parameters": {"conditions": conditions, "columns": columns, "limit": limit}})
+            logger.info(
+                "Searching products...",
+                extra={
+                    "extra_parameters": {
+                        "conditions": conditions,
+                        "columns": columns,
+                        "limit": limit,
+                    }
+                },
+            )
 
             query = f"SELECT {columns} FROM products"
 
@@ -86,10 +121,14 @@ class ProductRepository(Repository):
                 where_conditions = []
                 for attribute_name, attribute_value in conditions.items():
                     if isinstance(attribute_value, dict):
-                        where_conditions.append(f"{attribute_name} {attribute_value.get("operator")}"
-                                                f" '{attribute_value.get("value")}'")
+                        where_conditions.append(
+                            f"{attribute_name} {attribute_value.get("operator")}"
+                            f" '{attribute_value.get("value")}'"
+                        )
                     else:
-                        where_conditions.append(f"{attribute_name} = '{attribute_value}'")
+                        where_conditions.append(
+                            f"{attribute_name} = '{attribute_value}'"
+                        )
                 query += " WHERE " + " AND ".join(where_conditions)
 
             if limit:
@@ -105,57 +144,100 @@ class ProductRepository(Repository):
         product = self.search(conditions={"name": name, "expiry_date": expiry_date})
 
         if len(product) > 1:
-            logger.warning("There are more than 1 rows in the database storing the same product.",
-                           extra={"extra_parameters": {
-                               "name": name, "expiry_date": expiry_date}})
+            logger.warning(
+                "There are more than 1 rows in the database storing the same product.",
+                extra={"extra_parameters": {"name": name, "expiry_date": expiry_date}},
+            )
 
         return product
 
     def add(self, product: products.Product) -> None:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
-            logger.info("Adding product...",
-                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
-                                                    "expiry_date": product.expiry_date, "quantity": product.quantity}})
+            logger.info(
+                "Adding product...",
+                extra={
+                    "extra_parameters": {
+                        "category": product.CATEGORY,
+                        "name": product.name,
+                        "expiry_date": product.expiry_date,
+                        "quantity": product.quantity,
+                    }
+                },
+            )
 
-            cursor.execute(f"INSERT INTO products(category, name, expiry_date, quantity)"
-                           f"VALUES('{product.CATEGORY}', '{product.name}',"
-                           f"'{product.expiry_date}', {product.quantity});")
+            cursor.execute(
+                f"INSERT INTO products(category, name, expiry_date, quantity)"
+                f"VALUES('{product.CATEGORY}', '{product.name}',"
+                f"'{product.expiry_date}', {product.quantity});"
+            )
 
             logger.info("Adding completed.")
 
     def update(self, product: products.Product) -> None:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
-            logger.info("Updating quantity of the product...",
-                        extra={"extra_parameters": {"category": product.CATEGORY, "name": product.name,
-                                                    "expiry_date": product.expiry_date, "quantity": product.quantity}})
+            logger.info(
+                "Updating quantity of the product...",
+                extra={
+                    "extra_parameters": {
+                        "category": product.CATEGORY,
+                        "name": product.name,
+                        "expiry_date": product.expiry_date,
+                        "quantity": product.quantity,
+                    }
+                },
+            )
 
-            cursor.execute(f"UPDATE products SET quantity = {product.quantity} "
-                           f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';")
+            cursor.execute(
+                f"UPDATE products SET quantity = {product.quantity} "
+                f"WHERE name = '{product.name}' AND expiry_date = '{product.expiry_date}';"
+            )
 
             logger.info("Updating completed.")
 
     def remove(self, product_id: int) -> None:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
-            logger.info("Removing product...",
-                        extra={"extra_parameters": {"product_id": product_id}})
+            logger.info(
+                "Removing product...",
+                extra={"extra_parameters": {"product_id": product_id}},
+            )
 
             cursor.execute(f"DELETE FROM products WHERE product_id = '{product_id}';")
 
             logger.info("Removing completed.")
 
     def count(self) -> int:
-        with DatabaseContextManager(database=self.database, user=self.user, password=self.password,
-                                    host=self.host, port=self.port) as cursor:
+        with DatabaseContextManager(
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ) as cursor:
 
             logger.info("Counting all products...")
 
-            cursor.execute(f"SELECT COUNT (*) FROM products;")
+            cursor.execute("SELECT COUNT (*) FROM products;")
 
             logger.info("Counting completed.")
 
@@ -176,14 +258,16 @@ def get_product_class(category: str) -> type(products.Product):
             product_class = products.Grain
         case _:
             product_class = products.Product
-            logger.warning("Invalid product category.",
-                           extra={"extra_parameters": {"category": category}})
+            logger.warning(
+                "Invalid product category.",
+                extra={"extra_parameters": {"category": category}},
+            )
 
     return product_class
 
 
 def add_products(args: Namespace) -> None:
-    with open(args.json_file_add) as file:
+    with open(args.json_file_add, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
 
@@ -192,12 +276,16 @@ def add_products(args: Namespace) -> None:
         for product_dict in products_list:
             product_class = get_product_class(product_dict["category"])
             if product_class != products.Product:
-                product = product_class(product_dict["name"],
-                                        product_dict.get("expiry_date")
-                                        or calculate_date(product_dict["freshness_in_days"]),
-                                        product_dict.get("quantity"))
+                product = product_class(
+                    product_dict["name"],
+                    product_dict.get("expiry_date")
+                    or calculate_date(product_dict["freshness_in_days"]),
+                    product_dict.get("quantity"),
+                )
 
-                found_product = repo.get_by_name_and_date(product.name, product.expiry_date)
+                found_product = repo.get_by_name_and_date(
+                    product.name, product.expiry_date
+                )
 
                 if found_product:
                     # product_status is one-element list of tuples
@@ -209,7 +297,7 @@ def add_products(args: Namespace) -> None:
 
 
 def remove_products(args: Namespace) -> None:
-    with open(args.json_file_remove) as file:
+    with open(args.json_file_remove, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
 
@@ -230,12 +318,15 @@ def remove_products(args: Namespace) -> None:
 
 
 def display_products(args: Namespace) -> list[tuple]:
-    with open(args.json_file_display) as file:
+    with open(args.json_file_display, encoding="utf-8") as file:
         request_body = file.read()
         request_body = json.loads(request_body)
 
         repo = ProductRepository()
-        result = repo.search(conditions=request_body.get("conditions"), columns=request_body.get("columns", "*"),
-                             limit=request_body.get("limit"))
+        result = repo.search(
+            conditions=request_body.get("conditions"),
+            columns=request_body.get("columns", "*"),
+            limit=request_body.get("limit"),
+        )
 
         return result

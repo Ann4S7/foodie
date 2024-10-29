@@ -1,10 +1,9 @@
 import os
 
-from dotenv import load_dotenv
 import pytest
+from dotenv import load_dotenv
 
 import db_utils
-
 
 if os.environ.get("ENV") == "TEST":
     load_dotenv(".env_test")
@@ -19,7 +18,7 @@ def init_resource():
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        port=int(os.environ.get("DB_PORT"))
+        port=int(os.environ.get("DB_PORT")),
     )
     yield
     db_utils.drop_table(
@@ -27,5 +26,5 @@ def init_resource():
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        port=int(os.environ.get("DB_PORT"))
+        port=int(os.environ.get("DB_PORT")),
     )

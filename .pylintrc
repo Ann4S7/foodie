@@ -1,0 +1,24 @@
+[MESSAGES CONTROL]
+
+# Ignored warnings
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    arguments-differ,
+
+
+[DESIGN]
+
+# Maximum number of arguments for function/method
+max-args=10
+
+# Maximum number of positional arguments
+max-positional-arguments = 10
+
+
+[SIMILARITIES]
+
+# Minimum lines number of a similarity.
+min-similarity-lines=6
