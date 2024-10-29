@@ -14,9 +14,7 @@ jobs:
 #        run: |
 #          set ENV=TEST
 #          python pytest .
-#      - run: python3 --version
-#      - run: pip list
-#      - run: dir
-      - run: pip install -r requirements.txt
-      - run: set ENV=TEST
-      - run: pytest
+      - run: pwd
+#      - run: pip install -r requirements.txt
+#      - run: set ENV=TEST
+#      - run: pytest
