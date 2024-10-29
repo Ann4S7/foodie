@@ -13,8 +13,10 @@ jobs:
       - name: Run tests
         run: |
           pip install -r requirements.txt
-          $env:GITHUB_ENV="TEST"
-          echo "$env:GITHUB_ENV"
+#          $env:GITHUB_ENV="TEST"
+#          echo "$env:GITHUB_ENV"
+          $env:ENV="TEST"
+          echo "$env:ENV"
           $Env:PYTHONPATH="%cd%\src"
-          echo "$Env:PYTHONPATH"
+          echo "$env:PYTHONPATH"
           pytest
