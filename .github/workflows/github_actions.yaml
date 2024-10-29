@@ -11,4 +11,6 @@ jobs:
       - name: Pytest installation
         run: pip install pytest
       - name: Run tests
-        run: run_tests.ps1
+        run: |
+          set ENV=TEST
+          python pytest .
