@@ -8,14 +8,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - name: Pytest installation
-        run: pip install pytest
+#      - name: Pytest installation
+#        run: pip install pytest
 #      - name: Run tests
 #        run: |
 #          set ENV=TEST
 #          python pytest .
-      - run: python3 --version
-      - run: pip list
-      - run: dir
+#      - run: python3 --version
+#      - run: pip list
+#      - run: dir
+      - run: pip install -r requirements.txt
       - run: set ENV=TEST
       - run: pytest
