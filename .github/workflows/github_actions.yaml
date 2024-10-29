@@ -15,9 +15,8 @@ jobs:
 #          set ENV=TEST
 #          python pytest .
       - run: $Env:PYTHONPATH="%cd%\src"
-      - run: $Env:PYTHONPATH
-#      - run: echo %PYTHONPATH%
-#      - run: pip install -r requirements.txt
+#      - run: $Env:PYTHONPATH
+      - run: pip install -r requirements.txt
       - run: $Env:ENV="TEST"
-      - run: $Env:ENV
-#      - run: pytest
+#      - run: $Env:ENV
+      - run: pytest
