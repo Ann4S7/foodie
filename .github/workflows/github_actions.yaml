@@ -8,11 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
+#      - name: Pytest installation
+#        run: pip install pytest
       - name: Run tests
         run: |
           pip install -r requirements.txt
-#          $env:GITHUB_ENV="TEST"
-#          echo "$env:GITHUB_ENV"
           $env:ENV="TEST"
           echo "$env:ENV"
           $Env:PYTHONPATH="%cd%\src"
