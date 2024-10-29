@@ -16,3 +16,4 @@ jobs:
 #          python pytest .
       - run: python3 --version
       - run: pip list
+      - run: dir
