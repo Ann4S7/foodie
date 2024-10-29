@@ -17,3 +17,5 @@ jobs:
       - run: python3 --version
       - run: pip list
       - run: dir
+      - run: set ENV=TEST
+      - run: pytest
