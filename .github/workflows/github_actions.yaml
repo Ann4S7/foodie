@@ -15,4 +15,4 @@ jobs:
 #          set ENV=TEST
 #          python pytest .
       - run: python3 --version
-      - run: python --version
+      - run: pip list
