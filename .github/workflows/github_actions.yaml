@@ -15,6 +15,9 @@ jobs:
           pip install -r requirements.txt
           $env:ENV="TEST"
           echo "$env:ENV"
-          $Env:PYTHONPATH="%cd%\src"
+          $currentDir = Get-Location
+          $folder = "src"
+          $fullPath = Join-Path -Path $currentDir -ChildPath $folder
+          $Env:PYTHONPATH="$fullPath"
           echo "$env:PYTHONPATH"
           pytest
