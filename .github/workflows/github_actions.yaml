@@ -18,6 +18,6 @@ jobs:
 #      - run: $Env:PYTHONPATH
 #      - run: pip install -r requirements.txt
       - run: $env:GITHUB_ENV="TEST"
-      - run: echo "$env:GITHUB_ENV"
+          echo "$env:GITHUB_ENV"
 #      - run:
 #      - run: pytest
