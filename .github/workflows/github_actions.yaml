@@ -1,6 +1,11 @@
-name: push-workflow
+name: Code Quality and Unit Tests
 
-on: [pull_request]
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   pre-commit:
@@ -14,12 +19,9 @@ jobs:
           pip install -r dev_requirements.txt
       - name: Run pre-commit
         run: |
-          $currentDir = Get-Location
-          $folder = "src"
-          $fullPath = Join-Path -Path $currentDir -ChildPath $folder
-          $Env:PYTHONPATH="$fullPath"
-          pre-commit
-  tests:
+          set_pythonpath.ps1
+          pre-commit run --all-files
+  unit-tests:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,9 +30,5 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run unit tests
         run: |
-          $env:ENV="TEST"
-          $currentDir = Get-Location
-          $folder = "src"
-          $fullPath = Join-Path -Path $currentDir -ChildPath $folder
-          $Env:PYTHONPATH="$fullPath"
+          set_pythonpath.ps1
           pytest .\tests\unit_tests\
