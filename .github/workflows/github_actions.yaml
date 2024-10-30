@@ -12,7 +12,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-      - uses: pre-commit/action@v3.0.1
       - name: Run pre-commit
         run: |
           $env:ENV="TEST"
