@@ -14,7 +14,6 @@ jobs:
           pip install -r dev_requirements.txt
       - name: Run pre-commit
         run: |
-          $env:ENV="TEST"
           $currentDir = Get-Location
           $folder = "src"
           $fullPath = Join-Path -Path $currentDir -ChildPath $folder
