@@ -5,20 +5,14 @@ on: [pull_request]
 jobs:
   tests:
     runs-on: windows-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: new_password
-        ports:
-          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-#      - name: Pytest installation
-#        run: pip install pytest
+      - uses: ikalnytskyi/action-setup-postgres@v4
+        id: postgres
       - name: Run tests
+        env:
+          CONNECTION_STR: ${{ steps.postgres.outputs.connection-uri }}
         run: |
           pip install -r requirements.txt
           $env:ENV="TEST"
