@@ -3,19 +3,26 @@ name: push-workflow
 on: [pull_request]
 
 jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
+      - name: Run pre-commit
+        run: pre-commit
   tests:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
+      - name: Install Python packages
+        run: pip install -r requirements.txt
       - name: Run unit tests
         run: |
-          pip install -r requirements.txt
           $env:ENV="TEST"
-          echo "$env:ENV"
           $currentDir = Get-Location
           $folder = "src"
           $fullPath = Join-Path -Path $currentDir -ChildPath $folder
           $Env:PYTHONPATH="$fullPath"
-          echo "$env:PYTHONPATH"
           pytest .\tests\unit_tests\
