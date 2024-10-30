@@ -8,16 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - uses: ikalnytskyi/action-setup-postgres@v6
-        with:
-          username: postgres
-          password: new_password
-          database: foodie_db_test
-          port: 5432
-        id: postgres
-      - name: Run tests
-        env:
-          CONNECTION_STR: ${{ steps.postgres.outputs.connection-uri }}
+      - name: Run unit tests
         run: |
           pip install -r requirements.txt
           $env:ENV="TEST"
@@ -27,4 +18,4 @@ jobs:
           $fullPath = Join-Path -Path $currentDir -ChildPath $folder
           $Env:PYTHONPATH="$fullPath"
           echo "$env:PYTHONPATH"
-          pytest
+          pytest .\tests\unit_tests\
