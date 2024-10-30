@@ -15,4 +15,4 @@ Before running the tests, you need to change the value of environment variable (
 Windows, PowerShell - command: `$Env:ENV="TEST"`\
 Run the tests from root project folder.\
 Use: `pytest .\tests`\
-Instead of the above commands you can run the script in PowerShell: `run_tests.ps1`
+Instead of the above commands you can run the script in PowerShell: `.\scripts\run_tests.ps1`
