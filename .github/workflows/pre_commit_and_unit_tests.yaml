@@ -1,0 +1,34 @@
+name: Code Quality and Unit Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  pre-commit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - name: Install Python packages
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_requirements.txt
+      - name: Run pre-commit
+        run: |
+          .\scripts\set_pythonpath.ps1
+          pre-commit run --all-files
+  unit-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        run: |
+          .\scripts\set_pythonpath.ps1
+          pytest .\tests\unit_tests\
