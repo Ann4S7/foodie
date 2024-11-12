@@ -1,7 +1,17 @@
 from database_context_manager import DatabaseContextManager
 
 
-def create_table(database, user, password, host, port):
+def create_table(database: str, user: str, password: str, host: str, port: int) -> None:
+    """Create the products table in the database.
+
+    Args:
+        database: database name.
+        user: username.
+        password: the user password.
+        host: a server hostname that defines the location of the database server.
+        port: a server port number.
+
+    """
     with DatabaseContextManager(
         database=database, user=user, password=password, host=host, port=port
     ) as cursor:
@@ -16,7 +26,17 @@ def create_table(database, user, password, host, port):
         )
 
 
-def drop_table(database, user, password, host, port):
+def drop_table(database: str, user: str, password: str, host: str, port: int) -> None:
+    """Remove the products table from the database.
+
+    Args:
+        database: database name.
+        user: username.
+        password: the user password.
+        host: a server hostname that defines the location of the database server.
+        port: a server port number.
+
+    """
     with DatabaseContextManager(
         database=database, user=user, password=password, host=host, port=port
     ) as cursor:
