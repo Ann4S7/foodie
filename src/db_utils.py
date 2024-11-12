@@ -1,7 +1,9 @@
 from database_context_manager import DatabaseContextManager
 
 
-def create_table(database: str, user: str, password: str, host: str, port: int) -> None:
+def create_products_table(
+    database: str, user: str, password: str, host: str, port: int
+) -> None:
     """Create the products table in the database.
 
     Args:
@@ -26,7 +28,9 @@ def create_table(database: str, user: str, password: str, host: str, port: int) 
         )
 
 
-def drop_table(database: str, user: str, password: str, host: str, port: int) -> None:
+def drop_products_table(
+    database: str, user: str, password: str, host: str, port: int
+) -> None:
     """Remove the products table from the database.
 
     Args:
