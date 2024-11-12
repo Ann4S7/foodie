@@ -13,7 +13,7 @@ else:
 
 @pytest.fixture(scope="module")
 def init_resource():
-    db_utils.create_table(
+    db_utils.create_products_table(
         database=os.environ.get("DB_NAME"),
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
@@ -21,7 +21,7 @@ def init_resource():
         port=int(os.environ.get("DB_PORT")),
     )
     yield
-    db_utils.drop_table(
+    db_utils.drop_products_table(
         database=os.environ.get("DB_NAME"),
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),

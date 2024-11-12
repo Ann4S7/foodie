@@ -5,7 +5,17 @@ from time import localtime, strftime
 
 
 class CustomJsonFormatter(logging.Formatter):
+    """Determine the output formatting of log messages."""
+
     def format(self, record: logging.LogRecord) -> str:
+        """Format the log message.
+
+        Args:
+            record: a log.
+
+        Returns: json string that contains the log message.
+
+        """
         super().format(record)
         log_time = strftime("%Y-%m-%d %H:%M", localtime())
         log_dict = {

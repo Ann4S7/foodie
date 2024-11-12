@@ -11,6 +11,7 @@ from utils import calculate_date
 
 
 class Repository:
+    """The generic class defining what methods the child class should have."""
 
     def get(self, *args, **kwargs):
         """Get the row from database by id."""
@@ -38,6 +39,7 @@ class Repository:
 
 
 class ProductRepository(Repository):
+    """The class has instance methods that contain database queries."""
 
     def __init__(
         self,
@@ -54,6 +56,18 @@ class ProductRepository(Repository):
         self.port = port or int(os.environ.get("DB_PORT"))
 
     def get(self, product_id: int) -> Optional[products.Product]:
+        """Retrieve from the table one-element list of tuples.
+        The tuple contains the parameters of the product with specific id.
+        These parameters are used to create the instance of the class
+        that inherits from the Product class.
+
+        Args:
+            product_id: id of the product.
+
+        Returns: the instance of the class that inherits from the Product class
+            or None (if there is no product with specific id in the table).
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -96,6 +110,16 @@ class ProductRepository(Repository):
         columns: str = "*",
         limit: Optional[int] = None,
     ) -> list[tuple]:
+        """Search the records in the table by specific conditions.
+
+        Args:
+            conditions: can specify parameters of the products to be retrieved from the table.
+            columns: can specify columns with the product parameters to be retrieved from the table.
+            limit: can specify limit of the records to be retrieved from the table.
+
+        Returns: list of the tuples that contain product parameters (the list can be empty)
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -141,6 +165,16 @@ class ProductRepository(Repository):
             return cursor.fetchall()
 
     def get_by_name_and_date(self, name: str, expiry_date: date) -> list[tuple]:
+        """Retrieve a product with a specific name and expiry date from the table.
+
+        Args:
+            name: product name.
+            expiry_date: product expiry date.
+
+        Returns: list of the tuples that contain product parameters
+            (the list can contain one tuple or be empty)
+
+        """
         product = self.search(conditions={"name": name, "expiry_date": expiry_date})
 
         if len(product) > 1:
@@ -152,6 +186,13 @@ class ProductRepository(Repository):
         return product
 
     def add(self, product: products.Product) -> None:
+        """Take the instance of the class that inherits from the Product class.
+        Its attributes are used to create the new record in the table.
+
+        Args:
+            product: the instance of the class that inherits from the Product class.
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -181,6 +222,12 @@ class ProductRepository(Repository):
             logger.info("Adding completed.")
 
     def update(self, product: products.Product) -> None:
+        """Update the quantity of the product with a specific name and expiry date.
+
+        Args:
+            product: the instance of the class that inherits from the Product class.
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -209,6 +256,12 @@ class ProductRepository(Repository):
             logger.info("Updating completed.")
 
     def remove(self, product_id: int) -> None:
+        """Remove the product with a specific id from the table.
+
+        Args:
+            product_id: id of the product.
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -227,6 +280,11 @@ class ProductRepository(Repository):
             logger.info("Removing completed.")
 
     def count(self) -> int:
+        """Count all records in the table.
+
+        Returns: number of records in the table.
+
+        """
         with DatabaseContextManager(
             database=self.database,
             user=self.user,
@@ -245,6 +303,15 @@ class ProductRepository(Repository):
 
 
 def get_product_class(category: str) -> type(products.Product):
+    """Match a product class based on category name.
+
+    Args:
+        category: name of the product category.
+
+    Returns:
+        Product class or class that inherits from the Product class.
+
+    """
     match category:
         case "fruit":
             product_class = products.Fruit
@@ -267,6 +334,15 @@ def get_product_class(category: str) -> type(products.Product):
 
 
 def add_products(args: Namespace) -> None:
+    """Add products that have been purchased.
+    Update the quantity of the stored product or create new record.
+
+    Args:
+        args: an object holding the json_file_add attribute.
+            This attribute allows to pass the file containing
+            parameters of the products that have been purchased.
+
+    """
     with open(args.json_file_add, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
@@ -297,6 +373,14 @@ def add_products(args: Namespace) -> None:
 
 
 def remove_products(args: Namespace) -> None:
+    """Check the availability of the product with a given id. Remove used product.
+
+    Args:
+        args: an object holding the json_file_remove attribute.
+            This attribute allows to pass the file containing
+            product_id and the quantity of the products that have been used.
+
+    """
     with open(args.json_file_remove, encoding="utf-8") as file:
         products_list = file.read()
         products_list = json.loads(products_list)
@@ -318,6 +402,17 @@ def remove_products(args: Namespace) -> None:
 
 
 def display_products(args: Namespace) -> list[tuple]:
+    """Display products that meet the search criteria.
+
+    Args:
+        args: an object holding the json_file_display attribute.
+            This attribute allows to pass the file containing
+            parameters used in the search method.
+
+    Returns:
+        List of the tuples which contain product's parameters. The list can be empty.
+
+    """
     with open(args.json_file_display, encoding="utf-8") as file:
         request_body = file.read()
         request_body = json.loads(request_body)
